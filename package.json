@@ -1,9 +1,9 @@
 {
   "name": "edp-task-1",
   "version": "1.1.0",
-  "main": "index.ts",
+  "main": "main.ts",
   "scripts": {
-    "start": "ts-node src/index.ts",
+    "start": "ts-node src/main.ts",
     "build": "tsc",
     "lint": "eslint ./src --ext .ts",
     "format": "prettier --write ./src",
