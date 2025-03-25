@@ -1,4 +1,4 @@
-class Knot<T> {
+export class Knot<T> {
   data: T;
   next: Knot<T> | null;
 
@@ -8,7 +8,7 @@ class Knot<T> {
   }
 }
 
-class ChainedList<T> {
+export class ChainedList<T> {
   ptList: Knot<T> | null;
 
   constructor() {
@@ -68,7 +68,7 @@ class ChainedList<T> {
       elements.push(current.data);
       current = current.next;
     }
-    console.log([...elements, "None"].join(" -> "));
+    console.log([...elements, 'None'].join(' -> '));
   }
 }
 
@@ -76,7 +76,7 @@ const list = new ChainedList();
 list.include(10);
 list.include(20);
 list.include(30);
-list.show(); 
-console.log(list.search(20)); 
-console.log(list.remove(20)); 
+list.show();
+console.log(list.search(20));
+console.log(list.remove(20));
 list.show();

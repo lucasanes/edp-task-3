@@ -7,7 +7,8 @@
     "build": "tsc",
     "lint": "eslint ./src --ext .ts",
     "format": "prettier --write ./src",
-    "test": "jest"
+    "test": "jest",
+    "test:cov": "jest --coverage"
   },
   "repository": {
     "type": "git",
@@ -24,6 +25,8 @@
   },
   "homepage": "https://github.com/kaualandi/edp-task-1#readme",
   "devDependencies": {
+    "@jest/globals": "^29.7.0",
+    "@types/jest": "^29.5.14",
     "@types/json-server": "^0.14.7",
     "@types/node": "^22.10.2",
     "@typescript-eslint/eslint-plugin": "^8.18.1",
@@ -35,6 +38,7 @@
     "prettier": "^3.4.2",
     "prettier-eslint": "^16.3.0",
     "standard-version": "^9.5.0",
+    "ts-jest": "^29.3.0",
     "ts-node": "^10.9.2",
     "typescript": "^5.7.2"
   },
