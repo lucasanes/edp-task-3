@@ -1,42 +1,28 @@
-import { performance } from 'perf_hooks';
-import * as readline from 'readline';
-
-export class SearchAlgorithms {
-  private numbers: number[];
+export class SearchAnalysis {
+  private listSizes: number[] = [10, 100, 1000, 10000, 100000];
+  private lists: number[][] = [];
 
   constructor() {
-    this.numbers = [];
+    this.generateLists();
   }
 
-  public generateRandomList(size: number): void {
-    const numbersSet = new Set<number>();
-    while (numbersSet.size < size) {
-      numbersSet.add(Math.floor(Math.random() * 1000000));
+  private generateLists(): void {
+    for (const size of this.listSizes) {
+      const set = new Set<number>();
+      for (let i = 0; i < size; i++) {
+        set.add(i);
+      }
+      this.lists.push(Array.from(set));
     }
-    this.numbers = Array.from(numbersSet);
   }
 
-  public getNumbers(): number[] {
-    return this.numbers;
-  }
-
-  public sequentialSearch(target: number): number {
-    for (let i = 0; i < this.numbers.length; i++) {
-      if (this.numbers[i] === target) {
+  private sequentialSearch(list: number[], target: number): number {
+    for (let i = 0; i < list.length; i++) {
+      if (list[i] === target) {
         return i;
       }
     }
     return -1;
-  }
-
-  public binarySearch(target: number): number {
-    const sortedNumbers = [...this.numbers].sort((a, b) => a - b);
-    return this.binarySearchRecursive(
-      sortedNumbers,
-      target,
-      0,
-      sortedNumbers.length - 1
-    );
   }
 
   private binarySearchRecursive(
@@ -45,71 +31,91 @@ export class SearchAlgorithms {
     left: number,
     right: number
   ): number {
-    if (left > right) {
-      return -1;
-    }
-
+    if (left > right) return -1;
     const mid = Math.floor((left + right) / 2);
-
-    if (list[mid] === target) {
-      return mid;
-    }
-
-    if (list[mid] > target) {
+    if (list[mid] === target) return mid;
+    if (target < list[mid]) {
       return this.binarySearchRecursive(list, target, left, mid - 1);
+    } else {
+      return this.binarySearchRecursive(list, target, mid + 1, right);
+    }
+  }
+
+  public async run(): Promise<void> {
+    const target = await this.promptUser(
+      'Digite um número inteiro para buscar em todas as listas: '
+    );
+    const results: {
+      tamanho: number;
+      encontradoSeq: string;
+      tempoSeq: string;
+      encontradoBin: string;
+      tempoBin: string;
+    }[] = [];
+
+    for (let i = 0; i < this.listSizes.length; i++) {
+      const size = this.listSizes[i];
+      const list = this.lists[i];
+
+      const seqStart = performance.now();
+      const seqIndex = this.sequentialSearch(list, target);
+      const seqEnd = performance.now();
+      const seqTime = (seqEnd - seqStart).toFixed(4);
+
+      const sortedList = [...list].sort((a, b) => a - b);
+      const binStart = performance.now();
+      const binIndex = this.binarySearchRecursive(
+        sortedList,
+        target,
+        0,
+        sortedList.length - 1
+      );
+      const binEnd = performance.now();
+      const binTime = (binEnd - binStart).toFixed(4);
+
+      results.push({
+        tamanho: size,
+        encontradoSeq: seqIndex !== -1 ? 'Sim' : 'Não',
+        tempoSeq: `${seqTime} ms`,
+        encontradoBin: binIndex !== -1 ? 'Sim' : 'Não',
+        tempoBin: `${binTime} ms`,
+      });
     }
 
-    return this.binarySearchRecursive(list, target, mid + 1, right);
+    this.printTable(results);
   }
 
-  public measureExecutionTime(func: () => void): number {
-    const start = performance.now();
-    func();
-    const end = performance.now();
-    return end - start;
-  }
-}
-
-async function main() {
-  const searchAlgorithms = new SearchAlgorithms();
-  const rl = readline.createInterface({
-    input: process.stdin,
-    output: process.stdout,
-  });
-
-  const sizes = [10, 100, 1000, 10000, 100000];
-
-  console.log('Gerando listas...');
-
-  const target = await new Promise<number>((resolve) => {
-    rl.question('\nDigite um número para buscar: ', (answer) => {
-      resolve(parseInt(answer));
-    });
-  });
-
-  console.log('\nResultados da busca:\n');
-  console.log('Tamanho\t\tBusca Sequencial (ms)\tBusca Binária (ms)');
-  console.log('-'.repeat(80));
-
-  for (const size of sizes) {
-    searchAlgorithms.generateRandomList(size);
-
-    const sequentialTime = searchAlgorithms.measureExecutionTime(() => {
-      searchAlgorithms.sequentialSearch(target);
-    });
-
-    const binaryTime = searchAlgorithms.measureExecutionTime(() => {
-      searchAlgorithms.binarySearch(target);
-    });
-
+  private printTable(results: any[]): void {
+    console.log('\nResultado das buscas:\n');
     console.log(
-      `${size}\t\t${sequentialTime.toFixed(4)}\t\t\t${binaryTime.toFixed(4)}`
+      `| Tamanho da Lista | Encontrado Seq | Tempo Seq     | Encontrado Bin | Tempo Bin     |`
     );
+    console.log(
+      `|------------------|----------------|---------------|----------------|---------------|`
+    );
+    for (const row of results) {
+      console.log(
+        `| ${row.tamanho.toString().padEnd(16)} | ${row.encontradoSeq.padEnd(14)} | ${row.tempoSeq.padEnd(13)} | ${row.encontradoBin.padEnd(14)} | ${row.tempoBin.padEnd(13)} |`
+      );
+    }
   }
 
-  rl.close();
+  private async promptUser(question: string): Promise<number> {
+    const readline = await import('readline');
+    const rl = readline.createInterface({
+      input: process.stdin,
+      output: process.stdout,
+    });
+
+    return new Promise((resolve) => {
+      rl.question(question, (answer) => {
+        rl.close();
+        resolve(Number(answer.trim()));
+      });
+    });
+  }
 }
 
-if (require.main === module) {
-  main().catch(console.error);
-}
+// Executar
+const analysis = new SearchAnalysis();
+analysis.run();
