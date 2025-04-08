@@ -9,8 +9,8 @@ export class SearchAnalysis {
   private generateLists(): void {
     for (const size of this.listSizes) {
       const set = new Set<number>();
-      for (let i = 0; i < size; i++) {
-        set.add(i);
+      while (set.size < size) {
+        set.add(Math.floor(Math.random() * 1000000));
       }
       this.lists.push(Array.from(set));
     }
@@ -46,11 +46,11 @@ export class SearchAnalysis {
       'Digite um número inteiro para buscar em todas as listas: '
     );
     const results: {
-      tamanho: number;
-      encontradoSeq: string;
-      tempoSeq: string;
-      encontradoBin: string;
-      tempoBin: string;
+      size: number;
+      foundSeq: string;
+      timeSeq: string;
+      foundBin: string;
+      timeBin: string;
     }[] = [];
 
     for (let i = 0; i < this.listSizes.length; i++) {
@@ -74,11 +74,11 @@ export class SearchAnalysis {
       const binTime = (binEnd - binStart).toFixed(4);
 
       results.push({
-        tamanho: size,
-        encontradoSeq: seqIndex !== -1 ? 'Sim' : 'Não',
-        tempoSeq: `${seqTime} ms`,
-        encontradoBin: binIndex !== -1 ? 'Sim' : 'Não',
-        tempoBin: `${binTime} ms`,
+        size: size,
+        foundSeq: seqIndex !== -1 ? 'Sim' : 'Não',
+        timeSeq: `${seqTime} ms`,
+        foundBin: binIndex !== -1 ? 'Sim' : 'Não',
+        timeBin: `${binTime} ms`,
       });
     }
 
@@ -95,7 +95,7 @@ export class SearchAnalysis {
     );
     for (const row of results) {
       console.log(
-        `| ${row.tamanho.toString().padEnd(16)} | ${row.encontradoSeq.padEnd(14)} | ${row.tempoSeq.padEnd(13)} | ${row.encontradoBin.padEnd(14)} | ${row.tempoBin.padEnd(13)} |`
+        `| ${row.size.toString().padEnd(16)} | ${row.foundSeq.padEnd(14)} | ${row.timeSeq.padEnd(13)} | ${row.foundBin.padEnd(14)} | ${row.timeBin.padEnd(13)} |`
       );
     }
   }

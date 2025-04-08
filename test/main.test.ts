@@ -1,4 +1,4 @@
-import { jest } from '@jest/globals';
+import { beforeEach, describe, expect, it, jest } from '@jest/globals';
 import { SearchAnalysis } from '../src/main';
 
 describe('SearchAnalysis', () => {
@@ -86,11 +86,11 @@ describe('SearchAnalysis', () => {
       const mockLog = jest.spyOn(console, 'log').mockImplementation(() => {});
       const mockResults = [
         {
-          tamanho: 10,
-          encontradoSeq: 'Sim',
-          tempoSeq: '0.0001 ms',
-          encontradoBin: 'Sim',
-          tempoBin: '0.00005 ms',
+          size: 10,
+          foundSeq: 'Sim',
+          timeSeq: '0.0001 ms',
+          foundBin: 'Sim',
+          timeBin: '0.00005 ms',
         },
       ];
       (analysis as any).printTable(mockResults);
@@ -110,9 +110,28 @@ describe('SearchAnalysis', () => {
 
   describe('run', () => {
     it('should perform searches and print results when target is found', async () => {
+      analysis['lists'] = [
+        [1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
+        [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20],
+        [
+          1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20,
+          21, 22, 23, 24, 25, 26, 27, 28, 29, 30,
+        ],
+        [
+          1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20,
+          21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37,
+          38, 39, 40,
+        ],
+        [
+          1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20,
+          21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37,
+          38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50,
+        ],
+      ];
+
       const promptMock = jest
         .spyOn(analysis as any, 'promptUser')
-        .mockResolvedValue(5); // deve existir nas listas
+        .mockResolvedValue(5);
 
       const logSpy = jest.spyOn(console, 'log').mockImplementation(() => {});
 
@@ -130,10 +149,6 @@ describe('SearchAnalysis', () => {
     });
 
     it('should show "Não" when target is not found in any list', async () => {
-      const promptMock = jest
-        .spyOn(analysis as any, 'promptUser')
-        .mockResolvedValue(999999); // fora do range
-
       const logSpy = jest.spyOn(console, 'log').mockImplementation(() => {});
 
       await analysis.run();
