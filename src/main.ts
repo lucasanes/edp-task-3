@@ -1,82 +1,115 @@
-export class Knot<T> {
-  data: T;
-  next: Knot<T> | null;
+import { performance } from 'perf_hooks';
+import * as readline from 'readline';
 
-  constructor(data: T) {
-    this.data = data;
-    this.next = null;
-  }
-}
-
-export class ChainedList<T> {
-  ptList: Knot<T> | null;
+export class SearchAlgorithms {
+  private numbers: number[];
 
   constructor() {
-    this.ptList = null;
+    this.numbers = [];
   }
 
-  include(data: T): void {
-    const newKnot = new Knot(data);
-    if (this.ptList === null) {
-      this.ptList = newKnot;
-    } else {
-      let current = this.ptList;
-      while (current.next !== null) {
-        current = current.next;
+  public generateRandomList(size: number): void {
+    const numbersSet = new Set<number>();
+    while (numbersSet.size < size) {
+      numbersSet.add(Math.floor(Math.random() * 1000000));
+    }
+    this.numbers = Array.from(numbersSet);
+  }
+
+  public getNumbers(): number[] {
+    return this.numbers;
+  }
+
+  public sequentialSearch(target: number): number {
+    for (let i = 0; i < this.numbers.length; i++) {
+      if (this.numbers[i] === target) {
+        return i;
       }
-      current.next = newKnot;
     }
+    return -1;
   }
 
-  search(data: T): Knot<T> | null {
-    let current = this.ptList;
-    while (current !== null) {
-      if (current.data === data) {
-        return current;
-      }
-      current = current.next;
-    }
-    return null;
+  public binarySearch(target: number): number {
+    const sortedNumbers = [...this.numbers].sort((a, b) => a - b);
+    return this.binarySearchRecursive(
+      sortedNumbers,
+      target,
+      0,
+      sortedNumbers.length - 1
+    );
   }
 
-  remove(data: T): boolean {
-    if (this.ptList === null) {
-      return false;
+  private binarySearchRecursive(
+    list: number[],
+    target: number,
+    left: number,
+    right: number
+  ): number {
+    if (left > right) {
+      return -1;
     }
 
-    if (this.ptList.data === data) {
-      this.ptList = this.ptList.next;
-      return true;
+    const mid = Math.floor((left + right) / 2);
+
+    if (list[mid] === target) {
+      return mid;
     }
 
-    let current = this.ptList;
-    while (current.next !== null) {
-      if (current.next.data === data) {
-        current.next = current.next.next;
-        return true;
-      }
-      current = current.next;
+    if (list[mid] > target) {
+      return this.binarySearchRecursive(list, target, left, mid - 1);
     }
 
-    return false;
+    return this.binarySearchRecursive(list, target, mid + 1, right);
   }
 
-  show(): void {
-    let current = this.ptList;
-    const elements: T[] = [];
-    while (current !== null) {
-      elements.push(current.data);
-      current = current.next;
-    }
-    console.log([...elements, 'None'].join(' -> '));
+  public measureExecutionTime(func: () => void): number {
+    const start = performance.now();
+    func();
+    const end = performance.now();
+    return end - start;
   }
 }
 
-const list = new ChainedList();
-list.include(10);
-list.include(20);
-list.include(30);
-list.show();
-console.log(list.search(20));
-console.log(list.remove(20));
-list.show();
+async function main() {
+  const searchAlgorithms = new SearchAlgorithms();
+  const rl = readline.createInterface({
+    input: process.stdin,
+    output: process.stdout,
+  });
+
+  const sizes = [10, 100, 1000, 10000, 100000];
+
+  console.log('Gerando listas...');
+
+  const target = await new Promise<number>((resolve) => {
+    rl.question('\nDigite um número para buscar: ', (answer) => {
+      resolve(parseInt(answer));
+    });
+  });
+
+  console.log('\nResultados da busca:\n');
+  console.log('Tamanho\t\tBusca Sequencial (ms)\tBusca Binária (ms)');
+  console.log('-'.repeat(80));
+
+  for (const size of sizes) {
+    searchAlgorithms.generateRandomList(size);
+
+    const sequentialTime = searchAlgorithms.measureExecutionTime(() => {
+      searchAlgorithms.sequentialSearch(target);
+    });
+
+    const binaryTime = searchAlgorithms.measureExecutionTime(() => {
+      searchAlgorithms.binarySearch(target);
+    });
+
+    console.log(
+      `${size}\t\t${sequentialTime.toFixed(4)}\t\t\t${binaryTime.toFixed(4)}`
+    );
+  }
+
+  rl.close();
+}
+
+if (require.main === module) {
+  main().catch(console.error);
+}
